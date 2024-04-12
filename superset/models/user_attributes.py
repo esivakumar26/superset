@@ -51,12 +51,17 @@ class OwnershipMixin:  # pylint: disable=too-few-public-methods
     def owners_with_attributes(self) -> list[dict[str, Any]]:
         owners = []
         for owner in self.owners:  # type: ignore
-            extra_attribute = owner.extra_attributes[0]
+            avatar_url = None
+            welcome_dashboard_id = None
+            if owner.extra_attributes:
+                extra_attribute = owner.extra_attributes[0]
+                avatar_url = extra_attribute.avatar_url
+                welcome_dashboard_id = extra_attribute.welcome_dashboard_id
             owner_dict = {
                 "first_name": owner.first_name,
                 "last_name": owner.last_name,
-                "welcome_dashboard_id": extra_attribute.welcome_dashboard_id,
-                "avatar_url": extra_attribute.avatar_url,
+                "welcome_dashboard_id": welcome_dashboard_id,
+                "avatar_url": avatar_url,
             }
             owners.append(owner_dict)
         return owners

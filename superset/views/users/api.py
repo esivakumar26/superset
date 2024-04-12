@@ -106,9 +106,9 @@ class UserRestApi(BaseSupersetApi):
     openapi_spec_tag = "User"
     openapi_spec_component_schemas = (UserResponseSchema,)
 
-    @expose("/<user_id:int>/avatar.png", methods=("GET",))
+    @expose("/<int:user_id>/avatar.png", methods=("GET",))
     @safe
-    def avatar(self, user_id: str) -> Response:
+    def avatar(self, user_id: int) -> Response:
         """Get a redirect to the avatar's URL for the user with the given ID.
         ---
         get:
