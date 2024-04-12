@@ -17,8 +17,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import TYPE_CHECKING
 
 from flask_appbuilder.security.sqla.models import User
 
@@ -26,12 +24,10 @@ from superset.daos.base import BaseDAO
 from superset.extensions import db
 from superset.models.user_attributes import UserAttribute
 
-
 logger = logging.getLogger(__name__)
 
 
 class UserDAO(BaseDAO):
-
     @staticmethod
     def get_by_id(user_id: int) -> User:
         return db.session.query(User).filter_by(id=user_id).one()

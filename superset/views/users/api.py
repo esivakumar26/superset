@@ -20,6 +20,7 @@ from flask_jwt_extended.exceptions import NoAuthorizationError
 
 from superset import app, security_manager
 from superset.extensions import db
+from superset.daos.user import UserDAO
 from superset.models.user_attributes import UserAttribute
 from superset.utils.slack import get_user_avatar
 from superset.views.base_api import BaseSupersetApi
@@ -133,9 +134,11 @@ class UserRestApi(BaseSupersetApi):
         """
         try:
             avatar_url = None
-            user = security_manager.get_user_by_id(user_id)
+            user = UserDAO.get_by_id(user_id)
             if not user:
                 return self.response_404()
+
+            UserDAO.delete_all_atttr()
 
             # fetch from the one-to-one relationship
             if len(user.extra_attributes) > 0:
@@ -145,20 +148,13 @@ class UserRestApi(BaseSupersetApi):
                 "SLACK_ENABLE_AVATARS"
             ) and app.config.get("SLACK_API_TOKEN")
             if not avatar_url and should_fetch_slack_avatar:
-                # Fetching the avatar url from slack
-                avatar_url = get_user_avatar(user.email)
+                try:
+                    # Fetching the avatar url from slack
+                    avatar_url = get_user_avatar(user.email)
+                except Exception:
+                    return self.response_404()
 
-                # Saving the avatar url to the database
-                user_attrs = (
-                    # already exists
-                    db.session.query(UserAttribute).filter_by(user_id=user_id).first()
-                    or
-                    # create new
-                    UserAttribute(user_id=user_id)
-                )
-                user_attrs.avatar_url = avatar_url
-                db.session.add(user_attrs)
-                db.session.commit()
+                UserDAO.set_avatar_url(user, avatar_url)
 
             if avatar_url:
                 return redirect(avatar_url, code=301)

@@ -14,18 +14,21 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-import pytest
 from unittest.mock import MagicMock
 
-from sqlalchemy.orm import Query
+import pytest
 from flask_appbuilder.security.sqla.models import User
-from superset.daos.user import UserDAO, db
+from sqlalchemy.orm import Query
+
+from superset.daos.user import db, UserDAO
 from superset.models.user_attributes import UserAttribute
+
 
 @pytest.fixture
 def mock_db_session(mocker):
-    session = mocker.patch('superset.daos.user.db', autospec=True)
+    session = mocker.patch("superset.daos.user.db", autospec=True)
     return session
+
 
 def test_get_by_id_found(mock_db_session):
     # Setup
@@ -43,6 +46,7 @@ def test_get_by_id_found(mock_db_session):
     mock_db_session.query.assert_called_with(User)
     mock_query.filter_by.assert_called_with(id=user_id)
 
+
 def test_get_by_id_not_found(mock_db_session):
     # Setup
     user_id = 1
@@ -53,20 +57,22 @@ def test_get_by_id_not_found(mock_db_session):
     with pytest.raises(NoResultFound):
         UserDAO.get_by_id(user_id)
 
+
 def test_set_avatar_url_with_existing_attributes(mock_db_session):
     # Setup
     user = User()
     user.id = 1
-    user.extra_attributes = [UserAttribute(user_id=user.id, avatar_url='old_url')]
+    user.extra_attributes = [UserAttribute(user_id=user.id, avatar_url="old_url")]
 
     # Execute
-    new_url = 'http://newurl.com'
+    new_url = "http://newurl.com"
     UserDAO.set_avatar_url(user, new_url)
 
     # Assert
     assert user.extra_attributes[0].avatar_url == new_url
     mock_db_session.add.assert_not_called()  # No new attributes should be added
     mock_db_session.commit.assert_called()
+
 
 def test_set_avatar_url_without_existing_attributes(mock_db_session):
     # Setup
@@ -75,7 +81,7 @@ def test_set_avatar_url_without_existing_attributes(mock_db_session):
     user.extra_attributes = []
 
     # Execute
-    new_url = 'http://newurl.com'
+    new_url = "http://newurl.com"
     UserDAO.set_avatar_url(user, new_url)
 
     # Assert
@@ -83,4 +89,3 @@ def test_set_avatar_url_without_existing_attributes(mock_db_session):
     assert user.extra_attributes[0].avatar_url == new_url
     mock_db_session.add.assert_called()  # New attribute should be added
     mock_db_session.commit.assert_called()
-
