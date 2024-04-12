@@ -27,7 +27,7 @@ from superset.models.user_attributes import UserAttribute
 logger = logging.getLogger(__name__)
 
 
-class UserDAO(BaseDAO):
+class UserDAO(BaseDAO[User]):
     @staticmethod
     def get_by_id(user_id: int) -> User:
         return db.session.query(User).filter_by(id=user_id).one()
@@ -41,9 +41,3 @@ class UserDAO(BaseDAO):
             user.extra_attributes = [attrs]
             db.session.add(attrs)
             db.session.commit()
-
-    @staticmethod
-    def delete_all_atttr(user: User, url: str) -> None:
-        l = db.session.query(UserAttribute)
-        db.session.delete(l)
-        db.session.commit()

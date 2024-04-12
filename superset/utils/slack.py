@@ -15,7 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from typing import Optional
 
 from flask import current_app
 from slack_sdk import WebClient
@@ -32,7 +31,7 @@ def get_slack_client() -> WebClient:
     return WebClient(token=token, proxy=current_app.config["SLACK_PROXY"])
 
 
-def get_user_avatar(email: str, client: WebClient = None) -> Optional[str]:
+def get_user_avatar(email: str, client: WebClient = None) -> str:
     client = client or get_slack_client()
 
     try:
