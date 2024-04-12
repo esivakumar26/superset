@@ -15,8 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from typing import Optional
+
 from flask import current_app
 from slack_sdk import WebClient
+
+
+class SlackClientError(Exception):
+    pass
 
 
 def get_slack_client() -> WebClient:
@@ -26,8 +32,24 @@ def get_slack_client() -> WebClient:
     return WebClient(token=token, proxy=current_app.config["SLACK_PROXY"])
 
 
-def get_user_avatar(email: str, client: WebClient = None) -> str:
+def get_user_avatar(email: str, client: WebClient = None) -> Optional[str]:
     client = client or get_slack_client()
-    response = client.users_lookupByEmail(email=email)
-    avatar_url = response.data.get("user").get("profile").get("image_192")
+
+    try:
+        response = client.users_lookupByEmail(email=email)
+    except Exception as e:
+        raise SlackClientError(f"Failed to lookup user by email: {email}") from e
+
+    user = response.data.get("user")
+    if user is None:
+        raise SlackClientError("No user found with that email.")
+
+    profile = user.get("profile")
+    if profile is None:
+        raise SlackClientError("User found but no profile available.")
+
+    avatar_url = profile.get("image_192")
+    if avatar_url is None:
+        raise SlackClientError("Profile image is not available.")
+
     return avatar_url

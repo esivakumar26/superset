@@ -106,7 +106,7 @@ class UserRestApi(BaseSupersetApi):
     openapi_spec_tag = "User"
     openapi_spec_component_schemas = (UserResponseSchema,)
 
-    @expose("/<user_id>/avatar.png", methods=("GET",))
+    @expose("/<user_id:int>/avatar.png", methods=("GET",))
     @safe
     def avatar(self, user_id: str) -> Response:
         """Get a redirect to the avatar's URL for the user with the given ID.
@@ -133,17 +133,7 @@ class UserRestApi(BaseSupersetApi):
         """
         try:
             avatar_url = None
-
-            if not user_id.isdigit():
-                return self.response_404()
-
-            user_id_as_int: int = int(user_id)
-
-            user = (
-                db.session.query(security_manager.user_model)
-                .filter_by(id=user_id_as_int)
-                .first()
-            )
+            user = security_manager.get_user_by_id(user_id)
             if not user:
                 return self.response_404()
 
@@ -161,12 +151,10 @@ class UserRestApi(BaseSupersetApi):
                 # Saving the avatar url to the database
                 user_attrs = (
                     # already exists
-                    db.session.query(UserAttribute)
-                    .filter_by(user_id=user_id_as_int)
-                    .first()
+                    db.session.query(UserAttribute).filter_by(user_id=user_id).first()
                     or
                     # create new
-                    UserAttribute(user_id=user_id_as_int)
+                    UserAttribute(user_id=user_id)
                 )
                 user_attrs.avatar_url = avatar_url
                 db.session.add(user_attrs)
