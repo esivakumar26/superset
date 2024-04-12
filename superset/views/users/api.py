@@ -19,8 +19,8 @@ from flask_appbuilder.api import expose, safe
 from flask_jwt_extended.exceptions import NoAuthorizationError
 
 from superset import app, security_manager
-from superset.extensions import db
 from superset.daos.user import UserDAO
+from superset.extensions import db
 from superset.models.user_attributes import UserAttribute
 from superset.utils.slack import get_user_avatar
 from superset.views.base_api import BaseSupersetApi
@@ -137,8 +137,6 @@ class UserRestApi(BaseSupersetApi):
             user = UserDAO.get_by_id(user_id)
             if not user:
                 return self.response_404()
-
-            UserDAO.delete_all_atttr()
 
             # fetch from the one-to-one relationship
             if len(user.extra_attributes) > 0:
