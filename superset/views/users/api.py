@@ -132,32 +132,30 @@ class UserRestApi(BaseSupersetApi):
             404:
               $ref: '#/components/responses/404'
         """
-        try:
-            avatar_url = None
-            user = UserDAO.get_by_id(user_id)
-            if not user:
+        avatar_url = None
+        user = UserDAO.get_by_id(user_id)
+        if not user:
+            return self.response_404()
+
+        # fetch from the one-to-one relationship
+        if len(user.extra_attributes) > 0:
+            avatar_url = user.extra_attributes[0].avatar_url
+
+        should_fetch_slack_avatar = app.config.get(
+            "SLACK_ENABLE_AVATARS"
+        ) and app.config.get("SLACK_API_TOKEN")
+        if not avatar_url and should_fetch_slack_avatar:
+            try:
+                # Fetching the avatar url from slack
+                avatar_url = get_user_avatar(user.email)
+            except Exception:
                 return self.response_404()
 
-            # fetch from the one-to-one relationship
-            if len(user.extra_attributes) > 0:
-                avatar_url = user.extra_attributes[0].avatar_url
+            UserDAO.set_avatar_url(user, avatar_url)
 
-            should_fetch_slack_avatar = app.config.get(
-                "SLACK_ENABLE_AVATARS"
-            ) and app.config.get("SLACK_API_TOKEN")
-            if not avatar_url and should_fetch_slack_avatar:
-                try:
-                    # Fetching the avatar url from slack
-                    avatar_url = get_user_avatar(user.email)
-                except Exception:
-                    return self.response_404()
+        # Return a permanent redirect to the avatar URL
+        if avatar_url:
+            return redirect(avatar_url, code=301)
 
-                UserDAO.set_avatar_url(user, avatar_url)
-
-            if avatar_url:
-                return redirect(avatar_url, code=301)
-
-            return Response(status=204)
-
-        except NoAuthorizationError:
-            return self.response_401()
+        # No avatar found, return a "no-content" response
+        return Response(status=204)
