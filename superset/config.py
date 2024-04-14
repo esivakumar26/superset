@@ -1333,7 +1333,7 @@ SLACK_PROXY = None
 # Whether Superset should use Slack avatars for users.
 # If on, you'll want to add "https://avatars.slack-edge.com" to the list of allowed
 # domains in your TALISMAN_CONFIG
-SLACK_ENABLE_AVATARS = True
+SLACK_ENABLE_AVATARS = False
 
 # The webdriver to use for generating reports. Use one of the following
 # firefox
