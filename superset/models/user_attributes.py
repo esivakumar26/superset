@@ -14,7 +14,6 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-from typing import Any
 
 from flask_appbuilder import Model
 from sqlalchemy import Column, ForeignKey, Integer, String
@@ -44,24 +43,3 @@ class UserAttribute(Model, AuditMixinNullable):
     welcome_dashboard_id = Column(Integer, ForeignKey("dashboards.id"))
     welcome_dashboard = relationship("Dashboard")
     avatar_url = Column(String(100))
-
-
-class OwnershipMixin:  # pylint: disable=too-few-public-methods
-    @property
-    def owners_with_attributes(self) -> list[dict[str, Any]]:
-        owners = []
-        for owner in self.owners:  # type: ignore
-            avatar_url = None
-            welcome_dashboard_id = None
-            if owner.extra_attributes:
-                extra_attribute = owner.extra_attributes[0]
-                avatar_url = extra_attribute.avatar_url
-                welcome_dashboard_id = extra_attribute.welcome_dashboard_id
-            owner_dict = {
-                "first_name": owner.first_name,
-                "last_name": owner.last_name,
-                "welcome_dashboard_id": welcome_dashboard_id,
-                "avatar_url": avatar_url,
-            }
-            owners.append(owner_dict)
-        return owners
