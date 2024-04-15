@@ -18,11 +18,9 @@ from flask import g, redirect, Response
 from flask_appbuilder.api import expose, safe
 from flask_jwt_extended.exceptions import NoAuthorizationError
 
-from superset import app, security_manager
+from superset import app
 from superset.daos.user import UserDAO
-from superset.extensions import db
-from superset.models.user_attributes import UserAttribute
-from superset.utils.slack import get_user_avatar
+from superset.utils.slack import get_user_avatar, SlackClientError
 from superset.views.base_api import BaseSupersetApi
 from superset.views.users.schemas import UserResponseSchema
 from superset.views.utils import bootstrap_user_data
@@ -148,7 +146,7 @@ class UserRestApi(BaseSupersetApi):
             try:
                 # Fetching the avatar url from slack
                 avatar_url = get_user_avatar(user.email)
-            except Exception:
+            except SlackClientError:
                 return self.response_404()
 
             UserDAO.set_avatar_url(user, avatar_url)
