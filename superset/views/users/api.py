@@ -17,6 +17,7 @@
 from flask import g, redirect, Response
 from flask_appbuilder.api import expose, safe
 from flask_jwt_extended.exceptions import NoAuthorizationError
+from sqlalchemy.orm.exc import NoResultFound
 
 from superset import app
 from superset.daos.user import UserDAO
@@ -131,7 +132,11 @@ class UserRestApi(BaseSupersetApi):
               $ref: '#/components/responses/404'
         """
         avatar_url = None
-        user = UserDAO.get_by_id(user_id)
+        try:
+            user = UserDAO.get_by_id(user_id)
+        except NoResultFound:
+            return self.response_404()
+
         if not user:
             return self.response_404()
 
